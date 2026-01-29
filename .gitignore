@@ -1,0 +1,59 @@
+# Unreal Engine 5 .gitignore
+
+# Build folders
+Binaries/
+Build/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.sln
+*.vcxproj*
+*.sdf
+*.opensdf
+*.suo
+*.user
+
+# macOS
+.DS_Store
+*.swp
+*~
+
+# Compiled Object files
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Executables (keep for packaged builds if needed)
+# *.exe
+# *.out
+# *.app
+
+# Crashpad / Crash reports
+CrashReportClient/
+
+# Local plugin binaries
+Plugins/**/Binaries/
+Plugins/**/Intermediate/
+
+# Ignore Content folder for this workflow
+# IMPORTANT: Content is managed on Vagon only
+# Uncomment below if you want to track Content via Git LFS
+# For learning project, we keep Content local to Vagon
+Content/
+
+# Except for Config (we want to track this)
+!Config/
+
+# Ignore large Quixel/Megascans cache
+.megascans/
