@@ -1,35 +1,56 @@
-# BREACH - UE5 Tactical Realism FPS
+# BREACH - UE5 Tactical Stealth Action
 
 ## Project Overview
-A short tactical realism first-person shooter demo inspired by the visual style of "Bodycam," the industrial atmosphere of Metal Gear Solid 2 (Tanker), and a gritty Cyberpunk aesthetic. Built as a learning project to master the Claude Code + Cloud VM workflow.
+A story-driven stealth action game inspired by Metal Gear Solid's deep narrative and infiltration gameplay, combined with the visual realism of "Bodycam" and a gritty Cyberpunk aesthetic. Single-player campaign focused. Built as a learning project to master the Claude Code + Cloud VM workflow.
+
+## Story Context (See BREACH_STORY_BIBLE.md for full details)
+
+**Logline:** A disavowed operative infiltrates the fortress of the private military contractor that trained them, to expose a global AI-driven assassination program before it goes live.
+
+**Player Character:** ASH — former AXIOM operative, betrayed after discovering their targets were innocent
+
+**Enemy:** AXIOM SOLUTIONS — PMC running BLACK LIST, an AI that generates global kill orders
+
+**Primary Antagonist:** SHEPHERD — ASH's former mentor, true believer in AXIOM's mission
+
+**Codec Team:**
+- ORACLE — Handler, mysterious, knows too much
+- WRENCH — Tech/weapons, sarcastic, reliable
+- DOC — Medical, warm, moral compass
+- GHOST — Intel analyst, nervous, possibly compromised
+
+**Theme:** "Who decides who deserves to live?"
+
+**Demo Level:** THE RELAY — Small AXIOM facility, tutorial mission, ends with ASH finding their own name on the kill list
 
 ## Visual Direction (The "Cyber-Tanker" Look)
 
-### Environment
-- Industrial maritime/facility (steel walls, corrugated metal, pipes, valves)
-- Tight corridors, catwalks, cargo holds, engine rooms
-- Mix of "Bodycam" grit and "Cyberpunk" neon/grime
+### Environment — THE SPIRE (AXIOM HQ)
+- Dystopian megacorp compound disguised as tech campus
+- Clean corporate facades hiding brutal infrastructure beneath
+- Mix of sterile office spaces and industrial underbelly
+- Server farms, research labs, detention levels, executive suites
 
 ### Surface Detail
-- Wet metal floors with puddle reflections
-- Steam vents and heavy hydraulic machinery
-- Rust, grime, oil stains on surfaces
-- Exposed wiring and conduits
+- Polished floors in public areas, wet concrete in maintenance tunnels
+- Holographic corporate propaganda displays
+- Steam vents and heavy machinery in lower levels
+- Exposed wiring and conduits in restricted areas
+- Rain-slicked exteriors, neon reflections
 
 ### Lighting
-- High-contrast shadows with flickering emergency lights
-- Orange/blue color temperature contrast
-- Neon hazard strips and warning signs
-- Volumetric fog/steam catching light
-- Lumen GI for realistic bounce light
+- High-contrast shadows (crucial for stealth gameplay)
+- Cold blue corporate lighting vs. warm orange emergency systems
+- Neon accent strips (cyan AXIOM branding, magenta hazard warnings)
+- Searchlights and patrol flashlights
+- Volumetric fog/steam in industrial areas
+- Lumen GI for realistic bounce
 
 ### Camera Feel (Bodycam DNA)
-- Low FOV (~70 degrees)
-- Heavy motion blur
+- Low FOV (~70 degrees) for claustrophobic tension
 - Film grain post-process
 - Chromatic aberration
-- Realistic camera inertia and shake
-- Slight lens distortion
+- Slight camera sway when moving
 
 ## Tech Stack
 - **Engine**: Unreal Engine 5.5 (C++ and Blueprints)
@@ -69,14 +90,27 @@ Breach/
 ├── Source/
 │   └── Breach/
 │       ├── Characters/
-│       │   ├── BreachCharacter.cpp/.h
-│       │   └── EnemyCharacter.cpp/.h
+│       │   ├── BreachCharacter.cpp/.h      # Player character
+│       │   └── EnemyBase.cpp/.h            # Base enemy class
+│       ├── AI/
+│       │   ├── EnemyAIController.cpp/.h    # AI state machine
+│       │   ├── PatrolRoute.cpp/.h          # Patrol waypoints
+│       │   └── DetectionComponent.cpp/.h   # Vision/hearing
+│       ├── Stealth/
+│       │   ├── CoverSystem.cpp/.h          # Wall cover mechanics
+│       │   ├── NoiseSystem.cpp/.h          # Sound propagation
+│       │   ├── HidingSpot.cpp/.h           # Lockers, hiding places
+│       │   └── TakedownSystem.cpp/.h       # CQC mechanics
 │       ├── Weapons/
 │       │   ├── WeaponBase.cpp/.h
 │       │   └── Pistol.cpp/.h
+│       ├── Narrative/
+│       │   ├── DialogueSystem.cpp/.h       # Conversations
+│       │   ├── CodecSystem.cpp/.h          # Radio calls
+│       │   └── ObjectiveManager.cpp/.h     # Mission tracking
 │       ├── Components/
 │       │   ├── HealthComponent.cpp/.h
-│       │   └── FlashlightComponent.cpp/.h
+│       │   └── InventoryComponent.cpp/.h
 │       └── Breach.Build.cs
 ├── Content/                    # MANAGED ON VAGON ONLY (Excluded from Git)
 ├── Config/                     # Input and Game settings
@@ -114,35 +148,49 @@ UFUNCTION(BlueprintNativeEvent)         // C++ default, BP override
 
 ## Core Systems to Build
 
-### Phase 1: Movement
-- [ ] Basic FPS character controller
-- [ ] Walk, sprint, crouch
-- [ ] Head bob and camera shake
-- [ ] Footstep sounds integration point (metal clanks, water splashes)
+### Phase 1: Movement & Stealth Basics
+- [ ] Third-person character controller (MGSV-style camera)
+- [ ] Walk, sprint, crouch, prone
+- [ ] Cover system (snap to walls)
+- [ ] Peek around corners
+- [ ] Footstep noise system (surface-based)
 
-### Phase 2: Interaction
-- [ ] Flashlight toggle
-- [ ] Door interaction (bulkhead doors, sliding industrial doors)
-- [ ] Valve/switch interaction
-- [ ] Basic pickup system
+### Phase 2: Detection & AI
+- [ ] Enemy AI state machine (Patrol → Alert → Search → Combat)
+- [ ] Vision cone detection
+- [ ] Sound-based detection
+- [ ] Alert/Caution phases
+- [ ] Guard patrol routes
 
-### Phase 3: Combat
+### Phase 3: Stealth Actions
+- [ ] CQC takedowns (lethal/non-lethal)
+- [ ] Body drag and hide
+- [ ] Distractions (throw objects, knock on walls)
+- [ ] Hiding spots (lockers, under objects, cardboard box?)
+- [ ] Lockpicking/hacking mini-games
+
+### Phase 4: Combat (Last Resort)
 - [ ] Weapon base class
-- [ ] Pistol implementation
-- [ ] Hitscan shooting
-- [ ] Damage system
-- [ ] Health component
+- [ ] Suppressed pistol
+- [ ] Tranquilizer option
+- [ ] Health/damage system
+- [ ] Combat triggers full alert
 
-### Phase 4: Feel (The "Cyber-Tanker" Look)
-- [ ] Low FOV (~70)
-- [ ] Heavy motion blur
+### Phase 5: Narrative Systems
+- [ ] Dialogue system
+- [ ] Codec/radio calls
+- [ ] Collectible intel/documents
+- [ ] Cutscene triggers
+- [ ] Mission objectives UI
+
+### Phase 6: Feel (The "Cyber-Tanker" Look)
+- [ ] Low FOV (~70) for tension
 - [ ] Film grain post-process
 - [ ] Chromatic aberration
-- [ ] Realistic camera inertia
 - [ ] Wet surface materials (puddle reflections)
 - [ ] Neon emissive materials
 - [ ] Volumetric fog/steam
-- [ ] Flickering light Blueprints
+- [ ] Dynamic lighting (flickering, searchlights)
 
 ## Git Workflow
 
@@ -183,22 +231,28 @@ Examples:
 ## Asset Direction (For Vagon Work)
 
 ### Recommended Megascans/Quixel Categories
-- Industrial surfaces (metal panels, grating, pipes)
-- Machinery and mechanical parts
+- Corporate/office surfaces (polished concrete, glass, metal panels)
+- Industrial surfaces (grating, pipes, machinery)
+- Tech props (servers, monitors, control panels)
 - Wet/weathered surface decals
-- Debris and grime
+- Debris and grime for contrast areas
 
 ### Custom Materials Needed
-- Wet metal (high roughness variation, puddle blend)
-- Neon emissive strips (cyan, magenta, orange)
-- Rust/corrosion blend material
+- Corporate floor (polished, reflective)
+- Wet concrete (maintenance areas)
+- Neon emissive strips (cyan AXIOM brand, magenta hazards)
+- Holographic display material
 - Steam/fog particle material
 
 ### Reference Games
-- Metal Gear Solid 2 (Tanker chapter)
-- Cyberpunk 2077 (industrial areas)
-- Bodycam (camera feel and grain)
-- Alien: Isolation (industrial sci-fi atmosphere)
+- Metal Gear Solid 2 — stealth gameplay, codec system, narrative depth
+- Metal Gear Solid V — modern stealth mechanics, AI systems
+- Deus Ex: Human Revolution — megacorp aesthetic, stealth + narrative
+- Hitman (World of Assassination) — AI systems, detection mechanics
+- Splinter Cell: Chaos Theory — light/shadow stealth
+- Cyberpunk 2077 — neon + corporate dystopia
+- Control — brutalist corporate architecture
+- Bodycam — camera feel and visual grain
 
 ## Commands for Claude
 
@@ -208,6 +262,9 @@ When asked to create game systems, always:
 3. Explain what Blueprint connections are needed
 4. Note any Content/ work required on Vagon
 5. Consider the industrial/cyberpunk setting when naming and designing systems
+6. Prioritize stealth mechanics over combat — combat is a fail state
+7. Design AI systems with clear state transitions (Patrol → Alert → Search → Combat)
+8. Keep narrative systems modular for easy expansion
 
 ## Current Sprint
-Phase 1 - Basic movement and character setup
+Phase 1 - Third-person movement, crouch/prone, and basic cover system
