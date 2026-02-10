@@ -30,7 +30,7 @@ signal detected_by_enemy(enemy: Node3D)
 @export var walk_footstep_pitch: float = 380.0
 @export var sprint_footstep_pitch: float = 520.0
 @export var footstep_tone_duration: float = 0.10
-@export var footstep_tone_amplitude: float = 0.4
+@export var footstep_tone_amplitude: float = 0.65
 @export var debug_footsteps: bool = false
 
 var current_health: float
@@ -180,7 +180,7 @@ func _play_footstep_tone(noise_strength: float) -> void:
 			print("[AshController/Footstep] skipped: frame_count <= 0")
 		return
 
-	var amplitude := clamp(footstep_tone_amplitude * noise_strength, 0.0, 0.8)
+	var amplitude := clamp(max(0.12, footstep_tone_amplitude * noise_strength), 0.0, 0.9)
 	if debug_footsteps:
 		print("[AshController/Footstep] pushing frames=%d pitch=%.1f amp=%.3f" % [frame_count, pitch, amplitude])
 	for i in frame_count:
