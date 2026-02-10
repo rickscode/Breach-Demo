@@ -26,7 +26,7 @@ func handle_movement(_delta: float) -> void:
 	pass
 
 func apply_damage(amount: float) -> void:
-	current_health -= amount
+	current_health = max(current_health - amount, 0.0)
 	health_changed.emit(current_health)
 	if current_health <= 0.0:
 		die()
