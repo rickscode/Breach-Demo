@@ -71,7 +71,7 @@ func _physics_process(delta: float) -> void:
 
 func handle_camera_rotation(delta: float) -> void:
 	var camera_input := Input.get_axis("camera_left", "camera_right")
-	_camera_yaw += camera_input * camera_sensitivity * delta
+	_camera_yaw -= camera_input * camera_sensitivity * delta
 
 func handle_movement(delta: float) -> void:
 	is_crouching = Input.is_action_pressed("crouch")
