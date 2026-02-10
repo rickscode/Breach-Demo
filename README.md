@@ -13,6 +13,7 @@ BREACH is a story-driven stealth game where you play as **ASH**, a disavowed ope
 **Genre:** Third-person tactical stealth
 **Engine:** Godot 4
 **Visual Style:** PS2-era fidelity (MGS2/MGS3 aesthetic)
+**Combat Tone:** Stylized, high-impact “wow” action with cinematic gore beats (John Wick-style precision and intensity)
 
 ---
 

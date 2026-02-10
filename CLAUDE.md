@@ -27,6 +27,8 @@ A story-driven stealth action game inspired by Metal Gear Solid's deep narrative
 
 **Demo Level:** THE RELAY — Small AXIOM facility, tutorial mission, ends with ASH finding their own name on the kill list
 
+**Combat Tone:** Stylized, high-impact “wow” action with cinematic gore beats (John Wick-style precision and intensity).
+
 ## Tech Stack
 - **Engine**: Godot 4.3+ (GDScript)
 - **Dev Machine**: Mac M2 (runs locally, no cloud needed)
