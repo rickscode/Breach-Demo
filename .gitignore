@@ -57,3 +57,16 @@ Content/
 
 # Ignore large Quixel/Megascans cache
 .megascans/
+
+
+# Godot 4
+.godot/
+.import/
+export_presets.cfg
+
+# Optional: local/editor junk
+*.tmp
+.DS_Store
+
+# If your team does NOT want uid files tracked:
+*.uid
