@@ -18,7 +18,7 @@ signal detected_by_enemy(enemy: Node3D)
 @export var crouch_camera_height: float = 1.1
 @export var normal_tint: Color = Color(1.0, 0.45, 0.22, 1.0)
 @export var crouch_tint: Color = Color(0.35, 0.7, 1.0, 1.0)
-@export var sprint_tint: Color = Color(1.0, 0.84, 0.25, 1.0)
+@export var sprint_tint: Color = Color(1.0, 1.0, 1.0, 1.0)
 
 var current_health: float
 var is_crouching: bool = false
