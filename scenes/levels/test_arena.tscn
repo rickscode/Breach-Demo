@@ -1,36 +1,185 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/characters/ash.tscn" id="1"]
 [ext_resource type="Script" path="res://scripts/stealth/noise_system.gd" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/characters/enemy.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hiding_spot.tscn" id="4"]
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
 background_color = Color(0.05, 0.05, 0.08, 1)
+ambient_light_color = Color(0.1, 0.12, 0.18, 1)
+ambient_light_energy = 0.3
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
 albedo_color = Color(0.07, 0.09, 0.13, 1)
 metallic = 0.05
 roughness = 0.95
 
-[node name="TestArena" type="Node3D" unique_id=695314204]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
+albedo_color = Color(0.12, 0.14, 0.18, 1)
+metallic = 0.1
+roughness = 0.85
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1208844037]
+[sub_resource type="BoxMesh" id="BoxMesh_wall"]
+size = Vector3(1, 3, 1)
+
+[node name="TestArena" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.707107, 0.353553, 0.612372, 0, 0.866025, -0.5, -0.707107, 0.353553, 0.612372, 0, 6, 0)
-light_energy = 4.0
+light_energy = 2.5
+light_color = Color(0.7, 0.75, 0.9, 1)
 shadow_enabled = true
 shadow_bias = 0.04
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1272430819]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_1")
 
-[node name="Floor" type="CSGBox3D" parent="." unique_id=737840823]
+[node name="Floor" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 use_collision = true
-size = Vector3(20, 1, 20)
-material = SubResource("StandardMaterial3D_1")
+collision_layer = 4
+collision_mask = 0
+size = Vector3(24, 1, 24)
+material = SubResource("StandardMaterial3D_floor")
+
+; -- Perimeter walls --
+
+[node name="WallNorth" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -12)
+use_collision = true
+collision_layer = 4
+collision_mask = 0
+size = Vector3(24, 3, 0.5)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="WallSouth" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 12)
+use_collision = true
+collision_layer = 4
+collision_mask = 0
+size = Vector3(24, 3, 0.5)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="WallEast" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 1.5, 0)
+use_collision = true
+collision_layer = 4
+collision_mask = 0
+size = Vector3(0.5, 3, 24)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="WallWest" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 1.5, 0)
+use_collision = true
+collision_layer = 4
+collision_mask = 0
+size = Vector3(0.5, 3, 24)
+material = SubResource("StandardMaterial3D_wall")
+
+; -- Interior walls (L-shaped corridors) --
+
+[node name="WallInterior1" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.5, -3)
+use_collision = true
+collision_layer = 4
+collision_mask = 0
+size = Vector3(8, 3, 0.5)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="WallInterior2" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+use_collision = true
+collision_layer = 4
+collision_mask = 0
+size = Vector3(0.5, 3, 6)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="WallInterior3" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1.5, 4)
+use_collision = true
+collision_layer = 4
+collision_mask = 0
+size = Vector3(6, 3, 0.5)
+material = SubResource("StandardMaterial3D_wall")
+
+[node name="WallInterior4" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1.5, 5)
+use_collision = true
+collision_layer = 4
+collision_mask = 0
+size = Vector3(0.5, 3, 8)
+material = SubResource("StandardMaterial3D_wall")
+
+; -- Player spawn (bottom-left corner) --
 
 [node name="Ash" parent="." instance=ExtResource("1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 1, 9)
+collision_layer = 1
+collision_mask = 5
 
-[node name="NoiseSystem" type="Node" parent="."]
+; -- Enemy 1: Rectangular patrol (upper area) --
+
+[node name="Enemy1" parent="." instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1, -6)
+
+[node name="Patrol1" type="Marker3D" parent="Enemy1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="Patrol2" type="Marker3D" parent="Enemy1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 0)
+
+[node name="Patrol3" type="Marker3D" parent="Enemy1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 4)
+
+[node name="Patrol4" type="Marker3D" parent="Enemy1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+
+; -- Enemy 2: Triangular patrol (lower-right area) --
+
+[node name="Enemy2" parent="." instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1, 2)
+
+[node name="Patrol1" type="Marker3D" parent="Enemy2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="Patrol2" type="Marker3D" parent="Enemy2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 6)
+
+[node name="Patrol3" type="Marker3D" parent="Enemy2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 6)
+
+; -- Hiding spots --
+
+[node name="HidingSpot1" parent="." instance=ExtResource("4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -2)
+
+[node name="HidingSpot2" parent="." instance=ExtResource("4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 2)
+
+[node name="HidingSpot3" parent="." instance=ExtResource("4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 8)
+
+; -- Dramatic spot lights at chokepoints --
+
+[node name="SpotLight1" type="SpotLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 5, -3)
+light_color = Color(0.4, 0.55, 0.9, 1)
+light_energy = 6.0
+shadow_enabled = true
+spot_range = 10.0
+spot_angle = 35.0
+
+[node name="SpotLight2" type="SpotLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 5, 5, 4)
+light_color = Color(0.35, 0.5, 0.85, 1)
+light_energy = 6.0
+shadow_enabled = true
+spot_range = 10.0
+spot_angle = 35.0
+
+; -- Noise system --
+
+[node name="NoiseSystem" type="Node" parent="." groups=["noise_system"]]
 script = ExtResource("2")

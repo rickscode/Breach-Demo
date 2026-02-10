@@ -26,6 +26,7 @@ signal detected_by_enemy(enemy: Node3D)
 var current_health: float
 var is_crouching: bool = false
 var is_sprinting: bool = false
+var is_hidden: bool = false
 
 @onready var avatar_mesh: MeshInstance3D = $MeshInstance3D
 @onready var camera: Camera3D = $Camera3D
@@ -42,6 +43,7 @@ var _tone_sprint: AudioStreamWAV
 var _tone_crouch: AudioStreamWAV
 
 func _ready() -> void:
+	add_to_group("player")
 	current_health = max_health
 	_base_mesh_scale = avatar_mesh.scale
 	_base_camera_height = camera.position.y
@@ -58,7 +60,14 @@ func _ready() -> void:
 	_setup_footstep_audio()
 	_resolve_noise_system()
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("hide"):
+		_toggle_hide()
+
 func _physics_process(delta: float) -> void:
+	if is_hidden:
+		velocity = Vector3.ZERO
+		return
 	handle_movement(delta)
 	update_visual_feedback(delta)
 	update_footsteps(delta)
@@ -123,6 +132,17 @@ func apply_damage(amount: float) -> void:
 func die() -> void:
 	# TODO: Trigger game over and respawn flow.
 	pass
+
+func _toggle_hide() -> void:
+	if is_hidden:
+		is_hidden = false
+		return
+	# Check if inside a hiding spot
+	var areas := get_tree().get_nodes_in_group("hiding_spot")
+	for area in areas:
+		if area is HidingSpot and area.player_inside:
+			is_hidden = true
+			return
 
 func _setup_footstep_audio() -> void:
 	_tone_walk = _generate_tone(150.0, 0.6, 0.05)
