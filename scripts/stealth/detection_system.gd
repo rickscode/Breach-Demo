@@ -15,13 +15,8 @@ signal lost_target
 
 var detection_level: float = 0.0
 var _target: Node3D
-var _cone_mesh: MeshInstance3D
-var _cone_material: StandardMaterial3D
 var _was_suspicious: bool = false
 var _was_detected: bool = false
-
-func _ready() -> void:
-	_setup_vision_cone_mesh()
 
 func _process(delta: float) -> void:
 	if not _target:
@@ -40,12 +35,10 @@ func _process(delta: float) -> void:
 		_drain_detection(delta)
 
 	_update_signals()
-	_update_cone_color()
 
 func _drain_detection(delta: float) -> void:
 	detection_level = maxf(detection_level - decay_rate * delta, 0.0)
 	_update_signals()
-	_update_cone_color()
 
 func _find_target() -> void:
 	var players := get_tree().get_nodes_in_group("player")
@@ -120,34 +113,4 @@ func _update_signals() -> void:
 	_was_suspicious = is_suspicious
 	_was_detected = is_detected
 
-func _setup_vision_cone_mesh() -> void:
-	_cone_mesh = MeshInstance3D.new()
-	var cone := CylinderMesh.new()
-	cone.top_radius = 0.0
-	cone.bottom_radius = 1.2
-	cone.height = 4.0
-	_cone_mesh.mesh = cone
-	# Rotate so cone points forward (-Z)
-	_cone_mesh.rotation_degrees.x = -90.0
-	_cone_mesh.position = Vector3(0.0, eye_height * 0.5, -2.0)
 
-	_cone_material = StandardMaterial3D.new()
-	_cone_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_cone_material.albedo_color = Color(0.0, 1.0, 0.0, 0.04)
-	_cone_material.no_depth_test = true
-	_cone_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_cone_mesh.material_override = _cone_material
-
-	add_child(_cone_mesh)
-
-func _update_cone_color() -> void:
-	if not _cone_material:
-		return
-	var color: Color
-	if detection_level >= 0.99:
-		color = Color(1.0, 0.0, 0.0, 0.1)
-	elif detection_level >= 0.4:
-		color = Color(1.0, 1.0, 0.0, 0.07)
-	else:
-		color = Color(0.0, 1.0, 0.0, 0.04)
-	_cone_material.albedo_color = _cone_material.albedo_color.lerp(color, 0.15)
