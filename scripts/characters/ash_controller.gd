@@ -19,6 +19,12 @@ signal detected_by_enemy(enemy: Node3D)
 @export var normal_tint: Color = Color(1.0, 0.45, 0.22, 1.0)
 @export var crouch_tint: Color = Color(0.35, 0.7, 1.0, 1.0)
 @export var sprint_tint: Color = Color(1.0, 1.0, 1.0, 1.0)
+@export var base_move_noise: float = 0.35
+@export var sprint_noise_multiplier: float = 1.85
+@export var crouch_noise_multiplier: float = 0.4
+@export var min_noise_speed: float = 0.15
+@export var noise_emit_interval: float = 0.12
+@export var noise_system_path: NodePath
 
 var current_health: float
 var is_crouching: bool = false
@@ -31,6 +37,9 @@ var _base_mesh_scale: Vector3
 var _base_camera_height: float
 var _base_camera_fov: float
 var _avatar_material: StandardMaterial3D
+var _noise_system: NoiseSystem
+var _noise_emit_timer: float = 0.0
+var _did_warn_missing_noise_system: bool = false
 
 func _ready() -> void:
 	current_health = max_health
@@ -46,9 +55,11 @@ func _ready() -> void:
 	avatar_mesh.material_override = _avatar_material
 	_avatar_material.albedo_color = normal_tint
 	_avatar_material.emission = normal_tint
+	_resolve_noise_system()
 
 func _physics_process(delta: float) -> void:
 	handle_movement(delta)
+	update_stealth_noise(delta)
 	update_visual_feedback(delta)
 
 func handle_movement(delta: float) -> void:
@@ -79,6 +90,40 @@ func handle_movement(delta: float) -> void:
 	velocity.z = lerp(velocity.z, target_velocity.z, acceleration * delta)
 
 	move_and_slide()
+
+func update_stealth_noise(delta: float) -> void:
+	if _noise_system == null:
+		if not _did_warn_missing_noise_system:
+			_did_warn_missing_noise_system = true
+			push_warning("AshController could not find NoiseSystem. Set noise_system_path or add a sibling node named 'NoiseSystem'.")
+		return
+
+	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+	if horizontal_speed < min_noise_speed:
+		_noise_emit_timer = 0.0
+		return
+
+	_noise_emit_timer += delta
+	if _noise_emit_timer < noise_emit_interval:
+		return
+
+	_noise_emit_timer = 0.0
+	var speed_ratio := clamp(horizontal_speed / sprint_speed, 0.0, 1.0)
+	var state_multiplier := 1.0
+	if is_crouching:
+		state_multiplier = crouch_noise_multiplier
+	elif is_sprinting:
+		state_multiplier = sprint_noise_multiplier
+
+	var noise_strength := base_move_noise * speed_ratio * state_multiplier
+	_noise_system.emit_noise(global_position, noise_strength)
+
+func _resolve_noise_system() -> void:
+	if not noise_system_path.is_empty():
+		_noise_system = get_node_or_null(noise_system_path) as NoiseSystem
+
+	if _noise_system == null and get_parent() != null:
+		_noise_system = get_parent().get_node_or_null("NoiseSystem") as NoiseSystem
 
 func update_visual_feedback(delta: float) -> void:
 	var target_scale_y := _base_mesh_scale.y
