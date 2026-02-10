@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://c52dlm6pfj24p"]
 
 [ext_resource type="PackedScene" path="res://scenes/characters/ash.tscn" id="1"]
 
@@ -8,25 +8,25 @@ background_color = Color(0.05, 0.05, 0.08, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
 albedo_color = Color(0.07, 0.09, 0.13, 1)
-roughness = 0.95
 metallic = 0.05
+roughness = 0.95
 
-[node name="TestArena" type="Node3D"]
+[node name="TestArena" type="Node3D" unique_id=695314204]
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1208844037]
 transform = Transform3D(0.707107, 0.353553, 0.612372, 0, 0.866025, -0.5, -0.707107, 0.353553, 0.612372, 0, 6, 0)
 light_energy = 4.0
 shadow_enabled = true
 shadow_bias = 0.04
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1272430819]
 environment = SubResource("Environment_1")
 
-[node name="Floor" type="CSGBox3D" parent="."]
-size = Vector3(20, 1, 20)
+[node name="Floor" type="CSGBox3D" parent="." unique_id=737840823]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 use_collision = true
+size = Vector3(20, 1, 20)
 material = SubResource("StandardMaterial3D_1")
 
-[node name="Ash" parent="." instance=ExtResource("1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+[node name="Ash" parent="." unique_id=1763255941 instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.007148862, 1, 0.0039274693)
