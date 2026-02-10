@@ -112,5 +112,3 @@ func _update_signals() -> void:
 
 	_was_suspicious = is_suspicious
 	_was_detected = is_detected
-
-

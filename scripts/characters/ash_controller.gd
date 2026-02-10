@@ -19,6 +19,7 @@ signal detected_by_enemy(enemy: Node3D)
 @export var footstep_interval: float = 0.5
 @export var sprint_footstep_interval: float = 0.3
 @export var crouch_footstep_interval: float = 0.8
+@export var camera_sensitivity: float = 3.0
 
 var current_health: float
 var is_crouching: bool = false
@@ -57,9 +58,15 @@ func _physics_process(delta: float) -> void:
 	if is_hidden:
 		velocity = Vector3.ZERO
 		return
+	handle_camera_rotation(delta)
 	handle_movement(delta)
 	update_visual_feedback(delta)
 	update_footsteps(delta)
+
+func handle_camera_rotation(delta: float) -> void:
+	var camera_input := Input.get_axis("camera_left", "camera_right")
+	if abs(camera_input) > 0.0:
+		rotate_y(-camera_input * camera_sensitivity * delta)
 
 func handle_movement(delta: float) -> void:
 	is_crouching = Input.is_action_pressed("crouch")

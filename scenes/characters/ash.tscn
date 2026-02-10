@@ -35,7 +35,7 @@ mesh = SubResource("CapsuleMesh_1")
 material_override = SubResource("StandardMaterial3D_1")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 1.6, 4)
+transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 1.6, 3)
 
 [node name="FootstepAudio3D" type="AudioStreamPlayer3D" parent="."]
 volume_db = 8.0
