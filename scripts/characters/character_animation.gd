@@ -42,7 +42,9 @@ func load_mixamo_animations(anim_map: Dictionary) -> void:
 				# Mixamo FBX files typically have one animation (often named "mixamo.com")
 				var anim := source_player.get_animation(anim_names[0])
 				if anim:
-					lib.add_animation(state_name, anim.duplicate())
+					var copy := anim.duplicate()
+					copy.loop_mode = Animation.LOOP_LINEAR
+					lib.add_animation(state_name, copy)
 		instance.queue_free()
 
 
