@@ -21,11 +21,13 @@ var _pause_timer: float = 0.0
 var _state_timer: float = 0.0
 var _detection_system: DetectionSystem
 var _noise_system: NoiseSystem
+var _char_anim: CharacterAnimation
 
 func _ready() -> void:
 	_collect_patrol_points()
 	_setup_detection_system()
 	_resolve_noise_system()
+	_setup_animations()
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
@@ -42,6 +44,7 @@ func _physics_process(delta: float) -> void:
 			_process_alert(delta)
 
 	move_and_slide()
+	_update_animation()
 
 func _collect_patrol_points() -> void:
 	for child in get_children():
@@ -214,3 +217,54 @@ func on_noise_heard(noise_position: Vector3, strength: float) -> void:
 	if effective > 0.15 and alert_state == AlertState.UNAWARE:
 		last_known_position = noise_position
 		_enter_state(AlertState.SUSPICIOUS)
+
+# -- Animation --
+
+func _setup_animations() -> void:
+	var model_node := get_node_or_null("Model")
+	if not model_node:
+		return
+	_load_character_model(model_node, "res://assets/models/ash-character.fbx")
+	var anim_player := _find_anim_player(model_node)
+	if not anim_player:
+		return
+	_char_anim = CharacterAnimation.new()
+	model_node.add_child(_char_anim)
+	_char_anim.setup(anim_player)
+	_char_anim.load_mixamo_animations({
+		"idle": "res://assets/models/Idle.fbx",
+		"walk": "res://assets/models/Standard Walk.fbx",
+		"run": "res://assets/models/Running.fbx",
+	})
+
+func _load_character_model(model_node: Node3D, path: String) -> void:
+	if not ResourceLoader.exists(path):
+		return
+	var scene: PackedScene = load(path)
+	if not scene:
+		return
+	var mesh_inst := model_node.get_node_or_null("MeshInstance3D")
+	if mesh_inst:
+		mesh_inst.visible = false
+	var instance := scene.instantiate()
+	model_node.add_child(instance)
+
+func _find_anim_player(node: Node) -> AnimationPlayer:
+	for child in node.get_children():
+		if child is AnimationPlayer:
+			return child
+		var found := _find_anim_player(child)
+		if found:
+			return found
+	return null
+
+func _update_animation() -> void:
+	if not _char_anim:
+		return
+	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+	var is_moving := horizontal_speed > 0.3
+	match alert_state:
+		AlertState.ALERT:
+			_char_anim.play_state("run" if is_moving else "idle")
+		_:
+			_char_anim.play_state("walk" if is_moving else "idle")

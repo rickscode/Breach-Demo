@@ -37,6 +37,7 @@ var _noise_system: NoiseSystem
 var _tone_walk: AudioStreamWAV
 var _tone_sprint: AudioStreamWAV
 var _tone_crouch: AudioStreamWAV
+var _char_anim: CharacterAnimation
 
 func _ready() -> void:
 	add_to_group("player")
@@ -46,6 +47,7 @@ func _ready() -> void:
 	_base_camera_fov = camera.fov
 	_setup_footstep_audio()
 	_resolve_noise_system()
+	_setup_animations()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("hide"):
@@ -87,6 +89,7 @@ func handle_movement(delta: float) -> void:
 	velocity.z = lerp(velocity.z, target_velocity.z, acceleration * delta)
 
 	move_and_slide()
+	_update_animation()
 
 func update_visual_feedback(delta: float) -> void:
 	var target_scale_y := _base_model_scale.y
@@ -208,3 +211,55 @@ func _play_footstep_tone(_volume: float) -> void:
 	else:
 		footstep_audio.stream = _tone_walk
 	footstep_audio.play()
+
+func _setup_animations() -> void:
+	_load_character_model("res://assets/models/ash-character.fbx")
+	var anim_player := _find_anim_player(model)
+	if not anim_player:
+		return
+	_char_anim = CharacterAnimation.new()
+	model.add_child(_char_anim)
+	_char_anim.setup(anim_player)
+	_char_anim.load_mixamo_animations({
+		"idle": "res://assets/models/Idle.fbx",
+		"walk": "res://assets/models/Standard Walk.fbx",
+		"run": "res://assets/models/Running.fbx",
+		"crouch_idle": "res://assets/models/Male Crouch Pose.fbx",
+		"crouch_walk": "res://assets/models/Crouched Walking.fbx",
+	})
+
+func _load_character_model(path: String) -> void:
+	if not ResourceLoader.exists(path):
+		return
+	var scene: PackedScene = load(path)
+	if not scene:
+		return
+	# Hide the capsule mesh fallback
+	var mesh_inst := model.get_node_or_null("MeshInstance3D")
+	if mesh_inst:
+		mesh_inst.visible = false
+	var instance := scene.instantiate()
+	model.add_child(instance)
+
+func _find_anim_player(node: Node) -> AnimationPlayer:
+	for child in node.get_children():
+		if child is AnimationPlayer:
+			return child
+		var found := _find_anim_player(child)
+		if found:
+			return found
+	return null
+
+func _update_animation() -> void:
+	if not _char_anim:
+		return
+	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+	var is_moving := horizontal_speed > 0.5
+	if is_crouching:
+		_char_anim.play_state("crouch_walk" if is_moving else "crouch_idle")
+	elif is_sprinting and is_moving:
+		_char_anim.play_state("run")
+	elif is_moving:
+		_char_anim.play_state("walk")
+	else:
+		_char_anim.play_state("idle")
