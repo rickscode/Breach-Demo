@@ -122,7 +122,7 @@ func _update_signals() -> void:
 
 func _setup_vision_cone_mesh() -> void:
 	_cone_mesh = MeshInstance3D.new()
-	var cone := ConeMesh.new()
+	var cone := CylinderMesh.new()
 	cone.top_radius = 0.0
 	cone.bottom_radius = 3.0
 	cone.height = 6.0
