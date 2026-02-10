@@ -20,6 +20,8 @@ signal detected_by_enemy(enemy: Node3D)
 @export var sprint_footstep_interval: float = 0.3
 @export var crouch_footstep_interval: float = 0.8
 @export var camera_sensitivity: float = 3.0
+@export var camera_distance: float = 3.0
+@export var model_turn_speed: float = 10.0
 
 var current_health: float
 var is_crouching: bool = false
@@ -39,6 +41,7 @@ var _tone_walk: AudioStreamWAV
 var _tone_sprint: AudioStreamWAV
 var _tone_crouch: AudioStreamWAV
 var _char_anim: CharacterAnimation
+var _camera_yaw: float = 0.0
 
 func _ready() -> void:
 	add_to_group("player")
@@ -49,24 +52,26 @@ func _ready() -> void:
 	_setup_footstep_audio()
 	_resolve_noise_system()
 	_setup_animations()
+	_update_camera()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("hide"):
 		_toggle_hide()
 
 func _physics_process(delta: float) -> void:
+	handle_camera_rotation(delta)
 	if is_hidden:
 		velocity = Vector3.ZERO
+		_update_camera()
 		return
-	handle_camera_rotation(delta)
 	handle_movement(delta)
 	update_visual_feedback(delta)
 	update_footsteps(delta)
+	_update_camera()
 
 func handle_camera_rotation(delta: float) -> void:
 	var camera_input := Input.get_axis("camera_left", "camera_right")
-	if abs(camera_input) > 0.0:
-		rotate_y(-camera_input * camera_sensitivity * delta)
+	_camera_yaw += camera_input * camera_sensitivity * delta
 
 func handle_movement(delta: float) -> void:
 	is_crouching = Input.is_action_pressed("crouch")
@@ -78,12 +83,18 @@ func handle_movement(delta: float) -> void:
 		velocity.y = 0.0
 
 	var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
-	var move_direction := Vector3(input_vector.x, 0.0, input_vector.y)
+
+	# Movement relative to camera direction (MGS3-style)
+	var cam_forward := Vector3(-sin(_camera_yaw), 0.0, -cos(_camera_yaw))
+	var cam_right := Vector3(cos(_camera_yaw), 0.0, -sin(_camera_yaw))
+	var move_direction := (cam_right * input_vector.x + cam_forward * input_vector.y)
 	if move_direction.length() > 0.0:
 		move_direction = move_direction.normalized()
-		move_direction = global_transform.basis * move_direction
-		move_direction.y = 0.0
-		move_direction = move_direction.normalized()
+
+	# Rotate model to face movement direction
+	if move_direction.length() > 0.1:
+		var target_angle := atan2(move_direction.x, move_direction.z)
+		model.rotation.y = lerp_angle(model.rotation.y, target_angle, model_turn_speed * delta)
 
 	var target_speed := move_speed
 	if is_crouching:
@@ -112,6 +123,15 @@ func update_visual_feedback(delta: float) -> void:
 	model.scale.y = lerp(model.scale.y, target_scale_y, state_transition_speed * delta)
 	camera.position.y = lerp(camera.position.y, target_camera_height, state_transition_speed * delta)
 	camera.fov = lerp(camera.fov, target_fov, state_transition_speed * delta)
+
+func _update_camera() -> void:
+	var cam_offset := Vector3(
+		sin(_camera_yaw) * camera_distance,
+		camera.position.y,
+		cos(_camera_yaw) * camera_distance
+	)
+	camera.position = cam_offset
+	camera.look_at(global_position + Vector3.UP * 0.8)
 
 func apply_damage(amount: float) -> void:
 	current_health = max(current_health - amount, 0.0)
