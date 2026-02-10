@@ -25,6 +25,12 @@ signal detected_by_enemy(enemy: Node3D)
 @export var min_noise_speed: float = 0.15
 @export var noise_emit_interval: float = 0.12
 @export var noise_system_path: NodePath
+@export var footstep_tone_enabled: bool = true
+@export var crouch_footstep_pitch: float = 260.0
+@export var walk_footstep_pitch: float = 380.0
+@export var sprint_footstep_pitch: float = 520.0
+@export var footstep_tone_duration: float = 0.07
+@export var footstep_tone_amplitude: float = 0.25
 
 var current_health: float
 var is_crouching: bool = false
@@ -40,6 +46,7 @@ var _avatar_material: StandardMaterial3D
 var _noise_system: NoiseSystem
 var _noise_emit_timer: float = 0.0
 var _did_warn_missing_noise_system: bool = false
+var _footstep_playback: AudioStreamGeneratorPlayback
 
 func _ready() -> void:
 	current_health = max_health
@@ -56,6 +63,7 @@ func _ready() -> void:
 	_avatar_material.albedo_color = normal_tint
 	_avatar_material.emission = normal_tint
 	_resolve_noise_system()
+	_setup_footstep_audio()
 
 func _physics_process(delta: float) -> void:
 	handle_movement(delta)
@@ -117,6 +125,7 @@ func update_stealth_noise(delta: float) -> void:
 
 	var noise_strength := base_move_noise * speed_ratio * state_multiplier
 	_noise_system.emit_noise(global_position, noise_strength)
+	_play_footstep_tone(noise_strength)
 
 func _resolve_noise_system() -> void:
 	if not noise_system_path.is_empty():
@@ -124,6 +133,41 @@ func _resolve_noise_system() -> void:
 
 	if _noise_system == null and get_parent() != null:
 		_noise_system = get_parent().get_node_or_null("NoiseSystem") as NoiseSystem
+
+func _setup_footstep_audio() -> void:
+	var footstep_audio := get_node_or_null("FootstepAudio3D") as AudioStreamPlayer3D
+	if footstep_audio == null:
+		push_warning("AshController is missing FootstepAudio3D child. Movement tone feedback disabled.")
+		return
+
+	if footstep_audio.stream == null:
+		var generator := AudioStreamGenerator.new()
+		generator.mix_rate = 44100.0
+		generator.buffer_length = 0.1
+		footstep_audio.stream = generator
+
+	footstep_audio.play()
+	_footstep_playback = footstep_audio.get_stream_playback() as AudioStreamGeneratorPlayback
+
+func _play_footstep_tone(noise_strength: float) -> void:
+	if not footstep_tone_enabled or _footstep_playback == null:
+		return
+
+	var pitch := walk_footstep_pitch
+	if is_crouching:
+		pitch = crouch_footstep_pitch
+	elif is_sprinting:
+		pitch = sprint_footstep_pitch
+
+	var frame_count := int(44100.0 * footstep_tone_duration)
+	if frame_count <= 0:
+		return
+
+	var amplitude := clamp(footstep_tone_amplitude * noise_strength, 0.0, 0.6)
+	for i in frame_count:
+		var t := float(i) / 44100.0
+		var sample := sin(TAU * pitch * t) * amplitude
+		_footstep_playback.push_frame(Vector2(sample, sample))
 
 func update_visual_feedback(delta: float) -> void:
 	var target_scale_y := _base_mesh_scale.y
