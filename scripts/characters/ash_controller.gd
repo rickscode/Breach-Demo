@@ -19,6 +19,9 @@ signal detected_by_enemy(enemy: Node3D)
 @export var normal_tint: Color = Color(1.0, 0.45, 0.22, 1.0)
 @export var crouch_tint: Color = Color(0.35, 0.7, 1.0, 1.0)
 @export var sprint_tint: Color = Color(1.0, 1.0, 1.0, 1.0)
+@export var footstep_interval: float = 0.5
+@export var sprint_footstep_interval: float = 0.3
+@export var crouch_footstep_interval: float = 0.8
 
 var current_health: float
 var is_crouching: bool = false
@@ -26,11 +29,17 @@ var is_sprinting: bool = false
 
 @onready var avatar_mesh: MeshInstance3D = $MeshInstance3D
 @onready var camera: Camera3D = $Camera3D
+@onready var footstep_audio: AudioStreamPlayer3D = $FootstepAudio3D
 
 var _base_mesh_scale: Vector3
 var _base_camera_height: float
 var _base_camera_fov: float
 var _avatar_material: StandardMaterial3D
+var _footstep_timer: float = 0.0
+var _noise_system: NoiseSystem
+var _tone_walk: AudioStreamWAV
+var _tone_sprint: AudioStreamWAV
+var _tone_crouch: AudioStreamWAV
 
 func _ready() -> void:
 	current_health = max_health
@@ -46,10 +55,13 @@ func _ready() -> void:
 	avatar_mesh.material_override = _avatar_material
 	_avatar_material.albedo_color = normal_tint
 	_avatar_material.emission = normal_tint
+	_setup_footstep_audio()
+	_resolve_noise_system()
 
 func _physics_process(delta: float) -> void:
 	handle_movement(delta)
 	update_visual_feedback(delta)
+	update_footsteps(delta)
 
 func handle_movement(delta: float) -> void:
 	is_crouching = Input.is_action_pressed("crouch")
@@ -111,3 +123,88 @@ func apply_damage(amount: float) -> void:
 func die() -> void:
 	# TODO: Trigger game over and respawn flow.
 	pass
+
+func _setup_footstep_audio() -> void:
+	_tone_walk = _generate_tone(150.0, 0.6, 0.05)
+	_tone_sprint = _generate_tone(220.0, 1.0, 0.05)
+	_tone_crouch = _generate_tone(100.0, 0.3, 0.04)
+
+func _generate_tone(freq: float, volume: float, duration: float) -> AudioStreamWAV:
+	var mix_rate := 22050
+	var samples := int(mix_rate * duration)
+	var data := PackedByteArray()
+	data.resize(samples * 2)
+	for i in samples:
+		var t := float(i) / float(mix_rate)
+		var envelope := 1.0 - (float(i) / float(samples))
+		var value := sin(TAU * freq * t) * volume * envelope
+		var sample_int := clampi(int(value * 32767.0), -32768, 32767)
+		data[i * 2] = sample_int & 0xFF
+		data[i * 2 + 1] = (sample_int >> 8) & 0xFF
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = mix_rate
+	stream.data = data
+	return stream
+
+func _resolve_noise_system() -> void:
+	var nodes := get_tree().get_nodes_in_group("noise_system")
+	if nodes.size() > 0 and nodes[0] is NoiseSystem:
+		_noise_system = nodes[0]
+	else:
+		for node in get_tree().root.get_children():
+			var found := _find_noise_system(node)
+			if found:
+				_noise_system = found
+				break
+
+func _find_noise_system(node: Node) -> NoiseSystem:
+	if node is NoiseSystem:
+		return node
+	for child in node.get_children():
+		var found := _find_noise_system(child)
+		if found:
+			return found
+	return null
+
+func update_footsteps(delta: float) -> void:
+	if not is_on_floor():
+		return
+
+	var horizontal_vel := Vector2(velocity.x, velocity.z)
+	if horizontal_vel.length() < 0.5:
+		_footstep_timer = 0.0
+		return
+
+	_footstep_timer -= delta
+	if _footstep_timer > 0.0:
+		return
+
+	var volume: float
+	var noise_strength: float
+	if is_crouching:
+		_footstep_timer = crouch_footstep_interval
+		volume = 0.3
+		noise_strength = 0.2
+	elif is_sprinting:
+		_footstep_timer = sprint_footstep_interval
+		volume = 1.0
+		noise_strength = 1.0
+	else:
+		_footstep_timer = footstep_interval
+		volume = 0.6
+		noise_strength = 0.5
+
+	_play_footstep_tone(volume)
+
+	if _noise_system:
+		_noise_system.emit_noise(global_position, noise_strength)
+
+func _play_footstep_tone(_volume: float) -> void:
+	if is_crouching:
+		footstep_audio.stream = _tone_crouch
+	elif is_sprinting:
+		footstep_audio.stream = _tone_sprint
+	else:
+		footstep_audio.stream = _tone_walk
+	footstep_audio.play()
