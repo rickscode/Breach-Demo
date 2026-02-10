@@ -15,44 +15,18 @@ var current_health: float
 var is_crouching: bool = false
 var is_sprinting: bool = false
 
-var _gravity: float
-
 func _ready() -> void:
 	current_health = max_health
-	_gravity = ProjectSettings.get_setting("physics/3d/default_gravity") as float
 
 func _physics_process(delta: float) -> void:
 	handle_movement(delta)
 
-func handle_movement(delta: float) -> void:
-	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	var direction := (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
-
-	is_sprinting = Input.is_action_pressed("sprint")
-	is_crouching = Input.is_action_pressed("crouch")
-
-	var speed := move_speed
-	if is_sprinting:
-		speed = sprint_speed
-	elif is_crouching:
-		speed = crouch_speed
-
-	if direction:
-		velocity.x = direction.x * speed
-		velocity.z = direction.z * speed
-	else:
-		velocity.x = move_toward(velocity.x, 0.0, speed)
-		velocity.z = move_toward(velocity.z, 0.0, speed)
-
-	if not is_on_floor():
-		velocity.y -= _gravity * delta
-	else:
-		velocity.y = 0.0
-
-	move_and_slide()
+func handle_movement(_delta: float) -> void:
+	# TODO: Implement movement input, camera-relative direction, and sprint/crouch logic.
+	pass
 
 func apply_damage(amount: float) -> void:
-	current_health = max(current_health - amount, 0.0)
+	current_health -= amount
 	health_changed.emit(current_health)
 	if current_health <= 0.0:
 		die()
