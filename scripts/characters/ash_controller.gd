@@ -86,7 +86,7 @@ func handle_movement(delta: float) -> void:
 
 	# Movement relative to camera direction (MGS3-style)
 	var cam_forward := Vector3(-sin(_camera_yaw), 0.0, -cos(_camera_yaw))
-	var cam_right := Vector3(cos(_camera_yaw), 0.0, -sin(_camera_yaw))
+	var cam_right := Vector3(-cos(_camera_yaw), 0.0, sin(_camera_yaw))
 	var move_direction := (cam_right * input_vector.x + cam_forward * input_vector.y)
 	if move_direction.length() > 0.0:
 		move_direction = move_direction.normalized()
